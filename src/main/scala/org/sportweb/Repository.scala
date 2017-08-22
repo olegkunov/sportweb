@@ -1,10 +1,11 @@
 package org.sportweb
 
+import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
 trait Repository {
 
-  def db: slick.jdbc.JdbcBackend.Database
+
 
 }
 
@@ -21,6 +22,6 @@ object InMemoryRepository extends Repository {
 
 object PostgreRepository extends Repository {
 
-  override def db = ???
+
 
 }
