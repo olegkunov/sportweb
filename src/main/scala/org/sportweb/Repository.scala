@@ -1,6 +1,6 @@
 package org.sportweb
 
-import org.sportweb.model.{Collection, Sports, User, UserRole}
+import org.sportweb.model.{Entity, Sports, User, UserRole}
 import slick.jdbc.H2Profile
 import slick.jdbc.H2Profile.api._
 
@@ -27,20 +27,20 @@ class UsersTable(tag: Tag) extends Table[User](tag, "USERS") {
 
 object InMemoryRepository extends Repository {
 
-  def getAll(colSymbol: Symbol): Future[Seq[Collection]] = {
+  private val db = Database.forConfig("h2mem1")
+
+  private val sports = TableQuery[SportsTable]
+
+  private val users = TableQuery[UsersTable]
+
+  def getAll(colSymbol: Symbol): Future[Seq[Entity]] = {
     colSymbol match {
       case 'sports => db.run((for (s <- sports) yield s).result)
       case 'users =>  db.run((for (s <- users) yield s).result)
     }
   }
 
-  val db = Database.forConfig("h2mem1")
-
-  val sports = TableQuery[SportsTable]
-
-  val users = TableQuery[UsersTable]
-
-  def createTestData = {
+  def createTestData: Future[Unit] = {
       db.run(DBIO.seq(
         sports.schema.create,
         users.schema.create,
@@ -56,6 +56,8 @@ object InMemoryRepository extends Repository {
         case _ => println("Test data created")
       }
   }
+
+  def shutdown() { db.close() }
 
 }
 

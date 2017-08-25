@@ -4,21 +4,21 @@ import java.net.URL
 
 import akka.http.scaladsl.model.DateTime
 
-trait Collection
+trait Entity
 
-case class Sports(name: String) extends Collection {
+case class Sports(name: String) extends Entity {
   override def toString = name
 }
 
-case class EventType(name: String) extends Collection {
+case class EventType(name: String) extends Entity {
   override def toString = name
 }
 
-case class UserRole(name: String) extends Collection {
+case class UserRole(name: String) extends Entity {
   override def toString = name
 }
 
-case class User(name: String, login: String, passwordHash: String) extends Collection { //, role: UserRole)
+case class User(name: String, login: String, passwordHash: String) extends Entity { //, role: UserRole)
   override def toString = s"$name ($login)"
 }
 
