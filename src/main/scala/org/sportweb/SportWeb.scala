@@ -1,10 +1,12 @@
 package org.sportweb
 
+import java.awt.Desktop
+import java.net.URI
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import akka.http.scaladsl.model.{StatusCodes, Uri}
-import akka.http.scaladsl.server.{Directives, RequestContext, Route, StandardRoute}
+import akka.http.scaladsl.server.{Directives, Route}
 import akka.stream.ActorMaterializer
 import org.sportweb.model.{Sports, User}
 import spray.json.DefaultJsonProtocol
@@ -60,6 +62,10 @@ object SportWeb extends App {
 //  SportWebHttpServer.startServer(interface, port, ServerSettings(ConfigFactory.load))
 
   println(s"Server online at http://$interface:$port/\nPress RETURN to stop...")
+
+  if (Desktop.isDesktopSupported)
+    Desktop.getDesktop.browse(new URI(s"http://$interface:$port"))
+
   StdIn.readLine() // let it run until user presses return
 
   InMemoryRepository.shutdown()
