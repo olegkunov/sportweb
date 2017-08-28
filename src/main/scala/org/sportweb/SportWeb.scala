@@ -2,39 +2,45 @@ package org.sportweb
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.HttpApp
-import akka.http.scaladsl.settings.ServerSettings
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import akka.http.scaladsl.model.{StatusCodes, Uri}
+import akka.http.scaladsl.server.{Directives, RequestContext, Route, StandardRoute}
 import akka.stream.ActorMaterializer
-import com.typesafe.config.{ConfigBeanFactory, ConfigFactory}
-import org.sportweb.model.Entity
+import org.sportweb.model.{Sports, User}
+import spray.json.DefaultJsonProtocol
 
 import scala.io.StdIn
 
-object SportWebHttpServer { // extends HttpApp
+object SportWebHttpServer extends Directives with SprayJsonSupport with DefaultJsonProtocol { // extends HttpApp
 
-  def routes =
+  implicit val sportsItemFormat = jsonFormat1(Sports)
+  implicit val usersItemFormat = jsonFormat3(User)
+
+  def routes: Route =
     get {
       path("about") {
         getFromResource("about.html")
       } ~
-        path("") {
-          getFromResource("index.html")
-        } ~
-        path("sports") {
-          completeWithCollection('sports)
-        } ~
-        path("users") {
-          completeWithCollection('users)
-        }
+      path("") {
+        getFromResource("index.html")
+      } ~
+      path("sports") {
+        completeWithCollection('sports)
+      } ~
+      path("users") {
+        completeWithCollection('users)
+      } ~
+      path("collection") {
+        getFromResource("collection.html")
+      }
     }
 
   private def completeWithCollection(symbol: Symbol) = {
-    onSuccess(InMemoryRepository.getAll(symbol)) { s =>
-      complete(HttpEntity(ContentTypes.`text/html(UTF-8)`,
-        s"${s.foldLeft[String]("")((str: String, elem: Entity) => s"$str ${elem.toString} <p>")} <p><a href='/'>back</a>"
-      ))
+    symbol match {
+      case 'sports =>
+        complete(InMemoryRepository.getAll(symbol).mapTo[Seq[Sports]])
+      case 'users =>
+        complete(InMemoryRepository.getAll(symbol).mapTo[Seq[User]])
     }
   }
 

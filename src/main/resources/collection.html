@@ -10,36 +10,45 @@
     <style type="text/css">
         body { padding: 50px; }
     </style>
+    <script src="https://unpkg.com/vue"></script>
 </head>
 <body>
 
-<p></p>
+<div class="container" id="elements">
 
-<div class="container">
-    <div class="row"><h1>SportWeb</h1></div>
-    <div class="row" style="margin-bottom: 20px;"><a href="login">Войти</a></div>
-    <div class="row">
-        <div class="col-4 align-self-start">
-            <ul class="list-group">
-                <li class="list-group-item list-group-item-info">Справочники</li>
-                <li class="list-group-item"><a href="/collection?type=sports">Виды спорта</a></li>
-                <li class="list-group-item"><a href="/collection?type=users">Пользователи</a></li>
-                <li class="list-group-item"><a href="/teams">Команды</a></li>
-                <li class="list-group-item"><a href="/places">Места</a></li>
-            </ul>
-        </div>
-        <div class="col-4">
-            <ul class="list-group">
-                <li class="list-group-item list-group-item-info">Встречи</li>
-            </ul>
-        </div>
-    </div>
-    <hr />
-    <div class="row">
-        <div class="col"><a href="/about">О сайте</a></div>
-    </div>
+    <ul class="col-4 list-group">
+        <li class="list-group-item" v-for="elem in elems">
+            <a :href="elem.name">{{ elem.name }}</a>
+        </li>
+    </ul>
+
+    <span>{{  }}</span>
+
 </div>
 
+<script language="JavaScript">
+
+    var colType = (new URL(location).searchParams).get('type');
+    switch (colType) {
+        case "users": colUrl = "/users"; break;
+        case "sports": colUrl = "/sports"; break;
+    }
+
+    var view = new Vue({
+        el: '#elements',
+        data: {
+            elems: []
+        },
+        created() {
+            fetch(colUrl)
+                .then ( (response) => { return response.json(); } )
+                .then ( (json) => json.forEach (piece => {
+                    this.elems.push( { name: piece.name } );
+                }) )
+        }
+    });
+
+</script>
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->

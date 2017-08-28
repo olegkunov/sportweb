@@ -1,19 +1,20 @@
 package org.sportweb
 
-import org.sportweb.model.{Entity, Sports, User, UserRole}
-import slick.jdbc.H2Profile
-import slick.jdbc.H2Profile.api._
+import org.sportweb.model.{Entity, Sports, User}
+import slick.dbio.{DBIOAction, NoStream}
+import slick.jdbc.{H2Profile, PostgresProfile}
+//import slick.jdbc.H2Profile.api._
+import slick.jdbc.PostgresProfile.api._
+import slick.lifted.TableQuery
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Failure
 
-trait Repository { }
-
 class SportsTable(tag: Tag) extends Table[Sports](tag, "SPORTS") {
   def id = column[Int]("ID", O.AutoInc)
   def name = column[String]("NAME")
-  override def * = name <> (Sports, Sports.unapply)
+  override def * = name <> ( Sports, Sports.unapply )
 }
 
 class UsersTable(tag: Tag) extends Table[User](tag, "USERS") {
@@ -25,9 +26,24 @@ class UsersTable(tag: Tag) extends Table[User](tag, "USERS") {
   override def * = (name, login, passwordHash) <> (User.tupled, User.unapply)
 }
 
-object InMemoryRepository extends Repository {
+trait Repository {
 
-  private val db = Database.forConfig("h2mem1")
+  val db: DB
+
+  trait DB {
+    def run[R](action: DBIOAction[R, NoStream, Nothing]): Future[R]
+    def close(): Unit
+  }
+
+  class H2DB(und_db: slick.jdbc.H2Profile.backend.DatabaseDef) extends DB {
+    override def run[R](action: DBIOAction[R, NoStream, Nothing]): Future[R] = und_db.run(action)
+    override def close(): Unit = und_db.close()
+  }
+
+  class PostgresDB(und_db: slick.jdbc.PostgresProfile.backend.DatabaseDef) extends DB {
+    override def run[R](action: DBIOAction[R, NoStream, Nothing]): Future[R] = und_db.run(action)
+    override def close(): Unit = und_db.close()
+  }
 
   private val sports = TableQuery[SportsTable]
 
@@ -41,28 +57,34 @@ object InMemoryRepository extends Repository {
   }
 
   def createTestData: Future[Unit] = {
-      db.run(DBIO.seq(
-        sports.schema.create,
-        users.schema.create,
-        sports ++= Seq(Sports("Football"), Sports("Hockey"), Sports("Tennis")),
-        users ++= Seq(
-          User("Ilya Potanin", "vanger", "abcdef"),
-          User("Andrew Miroshnichenko", "mirosh", "abcdef"),
-          User("Magomed Khizriyev", "megamaga", "abcdef"),
-          User("Oleg Kunov", "ovk", "abcdef")
-        )
-      )) andThen {
-        case Failure(ex) => ex.printStackTrace()
-        case _ => println("Test data created")
-      }
+    db.run(DBIO.seq(
+      sports.schema.create,
+      users.schema.create,
+      sports ++= Seq(Sports("Football"), Sports("Hockey"), Sports("Tennis")),
+      users ++= Seq(
+        User("Ilya Potanin", "vanger", "abcdef"),
+        User("Andrew Miroshnichenko", "mirosh", "abcdef"),
+        User("Magomed Khizriyev", "megamaga", "abcdef"),
+        User("Oleg Kunov", "ovk", "abcdef")
+      )
+    )) andThen {
+      case Failure(ex) => ex.printStackTrace()
+      case _ => println("Test data created")
+    }
   }
 
   def shutdown() { db.close() }
 
 }
 
-object PostgreRepository extends Repository {
+object InMemoryRepository extends Repository {
 
+  override val db = new H2DB(H2Profile.api.Database.forConfig("h2mem1"))
 
+}
+
+object PostgresRepository extends Repository {
+
+  override val db = new PostgresDB(PostgresProfile.api.Database.forConfig("postgres_test"))
 
 }

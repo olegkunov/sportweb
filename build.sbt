@@ -9,5 +9,5 @@ lazy val root = (project in file(".")).
     )),
     name := "SportWeb",
     libraryDependencies += scalaTest % Test,
-    libraryDependencies ++= Seq(akkaHttp, h2, slick)
+    libraryDependencies ++= Seq(akkaHttp, akkaHttpSprayJson, h2, slick)
   )
