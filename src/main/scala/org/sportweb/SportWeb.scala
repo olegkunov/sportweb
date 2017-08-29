@@ -9,14 +9,21 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.stream.ActorMaterializer
 import org.sportweb.model.{Sports, User}
-import spray.json.DefaultJsonProtocol
+import spray.json._
 
 import scala.io.StdIn
+import scala.util.matching.Regex
 
-object SportWebHttpServer extends Directives with SprayJsonSupport with DefaultJsonProtocol { // extends HttpApp
+object SportWebHttpServer {
+
+  import DefaultJsonProtocol._
+  import Directives._
+  import SprayJsonSupport._
 
   implicit val sportsItemFormat = jsonFormat1(Sports)
   implicit val usersItemFormat = jsonFormat3(User)
+
+  import SportWeb.system.dispatcher
 
   def routes: Route =
     get {
@@ -34,15 +41,25 @@ object SportWebHttpServer extends Directives with SprayJsonSupport with DefaultJ
       } ~
       path("collection") {
         getFromResource("collection.html")
+      } ~
+      path(new Regex(""".*\.js""")) { s =>
+        getFromResource(s)
       }
+
     }
 
   private def completeWithCollection(symbol: Symbol) = {
     symbol match {
       case 'sports =>
-        complete(InMemoryRepository.getAll(symbol).mapTo[Seq[Sports]])
+        val result = InMemoryRepository.getAll(symbol).mapTo[Seq[Sports]].map { data =>
+          JsObject( "title" -> JsString("Виды спорта"), "data" -> JsArray(data.map(e => JsObject("name" -> JsString(e.name))).toVector)  )
+        }
+        complete(result)
       case 'users =>
-        complete(InMemoryRepository.getAll(symbol).mapTo[Seq[User]])
+        val result = InMemoryRepository.getAll(symbol).mapTo[Seq[User]].map { data =>
+          JsObject( "title" -> JsString("Пользователи"), "data" -> JsArray(data.map(e => JsObject("name" -> JsString(e.name), "username" -> JsString(e.login))).toVector)  )
+        }
+        complete(result)
     }
   }
 

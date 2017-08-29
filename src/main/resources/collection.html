@@ -17,8 +17,10 @@
 <div class="container" id="elements">
 
     <ul class="col-4 list-group">
+        <li class="list-group-item list-group-item-info">{{ title }}</li>
         <li class="list-group-item" v-for="elem in elems">
             <a :href="elem.name">{{ elem.name }}</a>
+            <span v-if="colType=='users'">{{ elem.username }}</span>
         </li>
     </ul>
 
@@ -26,29 +28,7 @@
 
 </div>
 
-<script language="JavaScript">
-
-    var colType = (new URL(location).searchParams).get('type');
-    switch (colType) {
-        case "users": colUrl = "/users"; break;
-        case "sports": colUrl = "/sports"; break;
-    }
-
-    var view = new Vue({
-        el: '#elements',
-        data: {
-            elems: []
-        },
-        created() {
-            fetch(colUrl)
-                .then ( (response) => { return response.json(); } )
-                .then ( (json) => json.forEach (piece => {
-                    this.elems.push( { name: piece.name } );
-                }) )
-        }
-    });
-
-</script>
+<script language="JavaScript" src="collection.js"></script>
 
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
