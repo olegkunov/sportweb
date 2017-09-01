@@ -20,8 +20,8 @@ object SportWebHttpServer {
   import Directives._
   import SprayJsonSupport._
 
-  implicit val sportsItemFormat = jsonFormat1(Sports)
-  implicit val usersItemFormat = jsonFormat3(User)
+  implicit val sportsItemFormat = jsonFormat2(Sports)
+  implicit val usersItemFormat = jsonFormat4(User)
 
   import SportWeb.system.dispatcher
 
@@ -52,12 +52,28 @@ object SportWebHttpServer {
     symbol match {
       case 'sports =>
         val result = InMemoryRepository.getAll(symbol).mapTo[Seq[Sports]].map { data =>
-          JsObject( "title" -> JsString("Виды спорта"), "data" -> JsArray(data.map(e => JsObject("name" -> JsString(e.name))).toVector)  )
+          println(data)
+          JsObject(
+            "title" -> JsString("Виды спорта"),
+            "data" -> JsArray(data.map(e =>
+              JsObject(
+                "id" -> JsNumber(e.id),
+                "name" -> JsString(e.name))
+            ).toVector))
         }
         complete(result)
       case 'users =>
         val result = InMemoryRepository.getAll(symbol).mapTo[Seq[User]].map { data =>
-          JsObject( "title" -> JsString("Пользователи"), "data" -> JsArray(data.map(e => JsObject("name" -> JsString(e.name), "username" -> JsString(e.login))).toVector)  )
+          println(data)
+          JsObject(
+            "title" -> JsString("Пользователи"),
+            "data" -> JsArray(data.map(e =>
+              JsObject(
+                "id" -> JsNumber(e.id),
+                "name" -> JsString(e.name),
+                "username" -> JsString(e.login))
+            ).toVector)
+          )
         }
         complete(result)
     }

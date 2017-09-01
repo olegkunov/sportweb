@@ -19,7 +19,7 @@
     <ul class="col-4 list-group">
         <li class="list-group-item list-group-item-info">{{ title }}</li>
         <li class="list-group-item" v-for="elem in elems">
-            <a :href="elem.name">{{ elem.name }}</a>
+            <a :href="elem.colType + '/' + elem.id">{{ elem.name }}</a>
             <span v-if="colType=='users'">{{ elem.username }}</span>
         </li>
     </ul>

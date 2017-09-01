@@ -7,19 +7,19 @@ import akka.http.scaladsl.model.DateTime
 trait Entity
 
 case class Sports(id: Int, name: String) extends Entity {
-  override def toString = name
+  //override def toString = name
 }
 
 case class EventType(id: Int, name: String) extends Entity {
-  override def toString = name
+  //override def toString = name
 }
 
 case class UserRole(id: Int, name: String) extends Entity {
-  override def toString = name
+  //override def toString = name
 }
 
 case class User(id: Int, name: String, login: String, passwordHash: String) extends Entity { //, role: UserRole)
-  override def toString = s"$name ($login)"
+  //override def toString = s"$name ($login)"
 }
 
 //type Person = Either[User, String]

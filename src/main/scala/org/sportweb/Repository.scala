@@ -39,7 +39,7 @@ class TeamsTable(tag: Tag) extends Table[Team](tag, "TEAMS") { this: DBComponent
   def member = foreignKey("MEMBER_FK", member_id, Tables.users)(_.id)
 
   def userIdToTeam(captainID: Int): Future[Team] = {
-    val q = captain.filter(_.id == captainID).result.head
+    val q = captain.filter(_.id === captainID).result.head
     val user = db.run(q)
     ???
   }
@@ -84,11 +84,19 @@ trait Repository extends DBComponent {
     }
   }
 
+  def shutdown() { db.close() }
+
+}
+
+object InMemoryRepository extends Repository {
+
+  override val db = new H2DB(H2Profile.api.Database.forConfig("h2mem1"))
+
   def createTestData: Future[Unit] = {
     db.run(DBIO.seq(
       Tables.sports.schema.create,
       Tables.users.schema.create,
-      Tables.sports ++= Seq(Sports(0, "Football"), Sports(0, "Hockey"), Sports(0, "Tennis")),
+      Tables.sports ++= Seq(Sports(0, "Football"), Sports(0, "Hockey"), Sports(0, "Tennis"), Sports(0, "Magic the Gathering")),
       Tables.users ++= Seq(
         User(0, "Ilya Potanin", "vanger", "abcdef"),
         User(0, "Andrew Miroshnichenko", "mirosh", "abcdef"),
@@ -100,14 +108,6 @@ trait Repository extends DBComponent {
       case _ => println("Test data created")
     }
   }
-
-  def shutdown() { db.close() }
-
-}
-
-object InMemoryRepository extends Repository {
-
-  override val db = new H2DB(H2Profile.api.Database.forConfig("h2mem1"))
 
 }
 
